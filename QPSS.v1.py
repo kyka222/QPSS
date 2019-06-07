@@ -5,53 +5,41 @@
 
 def create_rarebfile(filename):
     ## create plink files for specified chromosome
-    cmd_bfile = plink + " --bfile " + args.bfile + " --allow-no-sex --prune --chr " + chrn + " --make-bed --out " + cwd + "/tmp/" + filename + ".rare" + " --max-maf " + args.max_maf + " --mac " + args.min_ac
+    cmd_bfile = [plink, "--bfile", args.bfile, "--allow-no-sex", "--prune", "--chr", chrn, "--make-bed", "--out", cwd + "/tmp/" + filename + ".rare", "--max-maf", args.max_maf, "--mac", args.min_ac]
    
     if args.G_position:
-        cmd_bfile = cmd_bfile + " --from-bp " + args.G_position[0] + " --to-bp " + args.G_position[1]
+        cmd_bfile = cmd_bfile + ["--from-bp", args.G_position[0], "--to-bp", args.G_position[1]]
     if args.pheno:
-        cmd_bfile = cmd_bfile + " --pheno " + args.pheno
+        cmd_bfile = cmd_bfile + ["--pheno", args.pheno]
     if args.pheno_name:
-        cmd_bfile = cmd_bfile + " --pheno-name " + args.pheno_name
+        cmd_bfile = cmd_bfile + ["--pheno-name", args.pheno_name]
     if args.extract:
-        cmd_bfile = cmd_bfile + " --extract " + args.extract
+        cmd_bfile = cmd_bfile + ["--extract", args.extract]
     if args.exclude:
-        cmd_bfile = cmd_bfile + " --exclude " + args.exclude
+        cmd_bfile = cmd_bfile + ["--exclude", args.exclude]
     if args.filter:
-        cmd_bfile = cmd_bfile + " --filter " + args.filter[0] + " " + args.filter[1]
+        cmd_bfile = cmd_bfile + ["--filter", args.filter[0], args.filter[1]]
     if args.keep:
-        cmd_bfile = cmd_bfile + " --keep " + args.keep
+        cmd_bfile = cmd_bfile + ["--keep", args.keep]
     if args.remove:
-        cmd_bfile = cmd_bfile + " --remove " + args.remove
-
-    subprocess.call(cmd_bfile, shell = True, stdout=devnull)
+        cmd_bfile = cmd_bfile + ["--remove", args.remove]
     
-
-    if args.G_position and (int(args.G_position[1]) - int(args.G_position[0])) < 1000000:
-        #print(args.Gposition[0])
-        cmd_rareG = plink + " --bfile " + cwd + "/tmp/" + filename + ".rare --allow-no-sex --recode A --out " + cwd + "/tmp/" + filename + ".rareG"
-        subprocess.call(cmd_rareG, shell = True, stdout=devnull)
-        rawG = np.genfromtxt(cwd + "/tmp/" + filename + ".rareG.raw", skip_header = 1, missing_values = 'NA', unpack = True)
-        col_sum = np.nansum(rawG[6:], axis=0)
-        rawG_index = np.where(col_sum >= 1)
-        idG = np.genfromtxt(cwd + "/tmp/" + filename + ".rareG.raw", dtype='str', usecols=[0,1], skip_header = 1, unpack = True)
-        ids = idG.transpose()[rawG_index]
-        #np.savetxt(cwd + "/tmp/" + fname + ".rare.rawG.ids", ids, fmt='%i')
-        np.savetxt(cwd + "/tmp/" + fname + ".rare.rawG.ids", ids, delimiter=" ", fmt="%s")
-        cmd_rareG2 = plink + " --bfile " + cwd + "/tmp/" + filename + ".rare --allow-no-sex --keep " + cwd + "/tmp/" + filename + ".rare.rawG.ids --make-bed --out " + cwd + "/tmp/" + filename + ".rare"
-        subprocess.call(cmd_rareG2, shell = True, stdout=devnull)
+    try:
+        subprocess.check_call(cmd_bfile, stdout=devnull)
+    except subprocess.CalledProcessError as e:
+        print e.output
 
 
 def create_raw(W_start, W_end, filename):
-    cmd_raw = plink + " --bfile " + cwd + "/tmp/" + filename + ".rare --allow-no-sex --chr " + chrn + " --from-bp " + str(W_start) + " --to-bp " + str(W_end) + " --recode A --out " + cwd + "/tmp/" + filename + ".rare"
-    #cmd_raw = ["plink19b3x", "--bfile", "tmp/" + filename + ".rare", "--allow-no-sex", "--chr", chrn, "--from-bp", str(W_start), "--to-bp", str(W_end), "--recode", "A", "--out", "tmp/" + filename + ".rare"]
-    
-    subprocess.call(cmd_raw, shell = True, stdout=devnull)
-    #subprocess.Popen(cmd_raw, stdout=FNULL)
+    cmd_raw = [plink, "--bfile", cwd + "/tmp/" + filename + ".rare", "--allow-no-sex", "--chr", chrn, "--from-bp", str(W_start), "--to-bp",  str(W_end), "--recode",  "A",  "--out", cwd + "/tmp/" + filename + ".rare"]
+   
+    try:
+        subprocess.call(cmd_raw, stdout=devnull, stderr=devnull)
+    except subprocess.CalledProcessError as e:
+        print e.output
 
 def scan_stat(chrn, W_start, W_end, col_sum, phe):
     nG = len(phe)
-    #phe = (raw[5] - np.mean(raw[5])) / np.std(raw[5], ddof=0)
     rawin = phe[np.where(col_sum >= 1)]
     rawout = np.delete(phe, np.where(col_sum >= 1))
     re =[int(chrn), W_start, W_end]
@@ -61,7 +49,7 @@ def scan_stat(chrn, W_start, W_end, col_sum, phe):
     meanout = np.mean(rawout)
     sigmaWsq = (np.sum((rawin - meanin)**2) + np.sum((rawout - meanout)**2))/nG
     
-    #indicator = int(meanin > meanout)
+    #sign function
     if meanin > meanout:
         indicator = 1
     else:
@@ -69,16 +57,13 @@ def scan_stat(chrn, W_start, W_end, col_sum, phe):
         
     lnLRW = nG/2*math.log(float(sigmaGsq)/(float(sigmaWsq))) ## calculate part of LRW (1/sigmaW^2)
     re = re + [round(lnLRW,4), indicator, round(meanin,4), round(meanout,4)]
-
     return(re)
 
 ## simulation in each thread
 def MonteCarlo(i, j, l, ssl, phe):
     count = 0
     sim_ss_list = []
-    #[fi for fi in map(fn, lst) if fi is not None]
-    #counta = [int(scan_stat(args.chrn, w_start, w_end, row_sum, np.random.permutation(phe))[3] >= ss[3]) for num in xrange(i)]
-   
+  
     for _ in xrange(i):
         phe = np.random.permutation(phe)
         sim_ss = scan_stat(chrn, w_start, w_end, row_sum, np.random.permutation(phe))
@@ -86,15 +71,11 @@ def MonteCarlo(i, j, l, ssl, phe):
         count += int(sim_ss[3] >= ss[3])
 
     l[j] = count
-    #sim_ss_list = np.array(sorted(sim_ss_list, reverse=True))
-    ssl[j] = np.trim_zeros(sim_ss_list)
-    #print(l)
-    #print(ssl)
-    #l[j] = np.sum(counta)
+    #ssl[j] = np.trim_zeros(sim_ss_list)
+    ssl[j] = sim_ss_list
     
-
-## multiple threads	
-def mp(k, sim, phe):
+## multiple threads
+def mp(k, sim, phe): ## k = args.threads
     processes = []
     manager = multiprocessing.Manager() # to share memories between processes
     l = manager.list([0]*k)
@@ -128,15 +109,12 @@ def params(mexc, y): # y = np.array
     k_hat = (m**2/(m2-m**2)-1)/2
     
     return([a_hat, k_hat, t])
-    
+
+# run R for goodness of fit test -- > requires "goft" package
 def goodness(mexc, y, filename):
-    #print(y)
     t = (y[(mexc-1)] + y[mexc])/2
-    #print(t)
     z = y[:mexc] - t
-    #print(z)
     np.savetxt(cwd + "/tmp/" + filename + ".y.gpd", z, fmt='%f')
-    #cmd_gpd = "Rscript --vanilla --slave " + abs_path + "/gpd.r " + cwd + "/tmp/" + fname + ".y.gpd"
     cmd_gpd = ["Rscript", "--vanilla", "--slave", abs_path + "/gpd.r", cwd + "/tmp/" + fname + ".y.gpd"]
     gpd = subprocess.Popen(cmd_gpd, stdout=subprocess.PIPE, stderr=devnull)
     gpd.wait()
@@ -147,11 +125,12 @@ def goodness(mexc, y, filename):
 def gpd(a_hat, k_hat, z0, nsim, mexc): 
     F = 1-(1-k_hat*z0/a_hat)**(1/k_hat)
     p = float(mexc)/nsim*(1-F)
-    
     return(p)
-        
+
+
 if __name__ == '__main__':
     from fractions import Fraction
+    import progressbar
     import argparse
     import os
     import sys
@@ -165,8 +144,6 @@ if __name__ == '__main__':
     import random
     import gc
     import datetime
-    
-    #import scipy.stats as sp
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--bfile", required=True, help = "input plink bfile")
@@ -186,13 +163,13 @@ if __name__ == '__main__':
     parser.add_argument("--W-fixed", "--wf", default = 2000, type = int, help = "fixed window size")
     parser.add_argument("--W-slide", "--ws", default = 1000, type = int, help = "slide window size")
     parser.add_argument("--out", help = "output file name")
-    parser.add_argument("--perm", "--p", const = 'True', help = "whether p is computed. If GPD approximation is used, add 'gpd' as --perm gpd", nargs = '?')
+    parser.add_argument("--perm", "--p", const = 'True', help = "whether p is computed. Add 'gpd' as --perm gpd for GPD approximation", nargs = '?')
     parser.add_argument("--threads", default = 10, type = int, help = "# of threads")
     parser.add_argument("--max-sim", default = 10000, type = int, help = "max# of simulation")
     args = parser.parse_args()
 
     ##
-    plink = "plink19b67"
+    plink = "plink19b67" ## <-- change to plink command on your server
 
     ## output path and set the file name
     try:        
@@ -201,39 +178,59 @@ if __name__ == '__main__':
     except:
         cwd = os.getcwd()
         fname = ntpath.basename(args.bfile)
-    #print(cwd)
 
-    ## absolutive path
+    ## absolutive path to this python file
     abs_path = os.path.dirname(os.path.abspath(__file__))
     
     # make tmp directory for working under the current directory
     if not os.path.exists(cwd + "/tmp/"):
         os.mkdir(cwd + "/tmp/")
-
-    if os.path.isfile(cwd + "/tmp/" + fname + ".rare.raw"):
+    ## delete .raw file if it exists
+    if os.path.exists(cwd + "/tmp/" + fname + ".rare.raw"):
         os.remove(cwd + "/tmp/" + fname + ".rare.raw")
-
+    
+    ## delete .ss.out file if it exists
     if os.path.exists(cwd + '/' + fname + '.ss.out'):
         os.remove(cwd + '/' + fname + '.ss.out')
-
+    
+    ## open log file
     log = open(cwd + '/' + fname + '.log', 'w')    
     devnull = open(os.devnull, 'wb')
-
+    
+    ## get arguments
     argsstr = ' '.join(sys.argv)
     argsstr = argsstr.replace ('--', '\n --')
-
-    sys.stdout = log
-    print("QPSS v1.0 \(@_@)/")
-    print("Start time: " + str(datetime.datetime.today().strftime("%Y/%m/%d %H:%M:%S")))
-    print("")
-    print(argsstr)
-    sys.stdout.flush()
     
     chrn = args.chr
     
-    create_rarebfile(fname)
+    ## output STDOUT
+    sys.stdout = sys.__stdout__
+    print("")
+    print("Welcome to   ___  ____  ____ ____  ")
+    print("            / _ \|  _ \/ ___/ ___| ")
+    print("           | | | | |_) \___ \___ \ ")
+    print("           | |_| |  __/ ___) |__) |")
+    print("            \__\_\_|   |____/____/ ")
+    print("")
+    
+    ## output start time and arguments in the log file
+    sys.stdout = log
+    print("QPSS v1.0 \(@_@)/")
+    print("Start time: " + str(datetime.datetime.today().strftime("%Y/%m/%d %H:%M:%S")))
+    print("Working directory:" + str(os.getcwd()))
+    print("")
+    print(argsstr)
+    sys.stdout.flush()
 
-    ## create chr, start, end list
+    ## create plink files for rare varaints
+    create_rarebfile(fname)
+    
+    ## get G_start and G_end
+    bim = np.loadtxt(cwd + "/tmp/" + fname + ".rare.bim", usecols=[3])
+    G_start = int(bim[0])
+    G_end = int(bim[-1])
+        
+    ## create list with [chr, start, end] list for window(s)
     if args.W_file:
         ssout = np.loadtxt(args.W_file, dtype="int", usecols=(range(0, 3)))
         if ssout.ndim == 1:
@@ -241,92 +238,72 @@ if __name__ == '__main__':
     elif args.W_position:
         ssout = [[int(chrn), int(args.W_position[0]), int(args.W_position[1])]]
     else:
-        bim = np.loadtxt(cwd + "/tmp/" + fname + ".rare.bim", usecols=[3])
-        G_start = int(bim[0])
-        G_end = int(bim[-1])
         w_start = G_start
         ssout = []
-
         while w_start < G_end:
             w_end = w_start + args.W_fixed - 1
             ssout.append([int(chrn), w_start, w_end])
             w_start = w_start + args.W_slide
-    sys.stdout = sys.__stdout__
-    print("G = " + str(ssout[0][1]) + " - " + str(ssout[-1][1]))
+    
+    ## run scan_stat for each window
+    sys.stdout = log
+    print("")
+    print("Large genetic region G: " + str(G_start) + "-" + str(G_end))
+    print("# of windows within G: " + str(len(ssout)))
+    sys.stdout.flush()
+    
+    ## progressbar
+    widgets = [
+        'QPSS progress: ', progressbar.Percentage(),
+        ' ', progressbar.Bar(),
+        ' ', progressbar.ETA(),
+        ' ', progressbar.FileTransferSpeed(),
+    ]
+    pb = progressbar.ProgressBar(widgets=widgets, maxval=len(ssout)).start()
+    
+    i = 0 ## for progressbar
+    k = 0 ## count # of windows contining no variants
     for term in ssout:
         w_start = int(term[1])
         w_end = int(term[2])
         if os.path.exists(cwd + "/tmp/" + fname + ".rare.raw"):
             os.remove(cwd + "/tmp/" + fname + ".rare.raw")
         create_raw(w_start, w_end, fname)
-        sys.stdout = log
-        print("")
-        print("---")
-        print("Chromosome " + chrn)
-        print("Start position = " + str(w_start))
-        print("End position = " + str(w_end))
-        print("---")
-        sys.stdout.flush()
-        
+
         try:
             raw = np.genfromtxt(cwd + "/tmp/" + fname + ".rare.raw", skip_header = 1, missing_values = 'NA', unpack = True)
             row_sum = np.nansum(raw[6:], axis=0)
             ncol = np.size(raw[6:], axis=0)
             phe = raw[5]
             ss = scan_stat(chrn, w_start, w_end, row_sum, phe)
-
-            print("# of variants within the window = " + str(ncol))
-            print("Mean within the window = " + str(ss[5]))
-            print("Mean outside of the window = " + str(ss[6]))
-            sys.stdout.flush()
+            ss = ss + [ncol]
             
             ## permutation test
             if args.perm:
+                totalnsim = 0
                 nsim = 1000
-                nsimlist = [nsim]
-                list_sum = [0]
+                sumcount = 0
                 list_ss = []
-                sys.stdout = sys.__stdout__
-                print('--- CHR '+ chrn + ': ' + str(w_start) + ' - ' + str(w_end))
-                print("Computing permutation p-value "),
-                while(list_sum[0] < 100):
-                    if(sum(nsimlist) > args.max_sim):
+                while(sumcount < 100):
+                    totalnsim = totalnsim + nsim
+                    if(totalnsim > args.max_sim):
                         break
-                    sys.stdout.write('\033[33m=>\033[1D\033[0m')
-                    #print('\033[33m' + str(sum(nsimlist)) + '\033[0m'),
                     mpre = mp(args.threads, nsim, phe)
-                    #list_sum.append(sum(mpre[0]))
-                    list_sum.append(mpre[0])
-                    list_ss.extend(mpre[1])
-                    list_sum = [sum(list_sum)]
-                    nsimlist = [sum(nsimlist)]
-                    nsim = nsimlist[0]*10 - nsimlist[0]
-                    nsimlist.append(nsim)
-                nsimp = sum(nsimlist[:-1])
-                sys.stdout.write('\033[33m> ' + str(sum(list_sum)) + '/' + str(nsimp) + '\033[0m' + '\n')    
-                #print("")
-                if args.perm == "gpd" and list_sum[0] < 100:
-                    i = 0
-                    if list_sum[0] == 0:
-                        sys.stdout = sys.__stdout__
-                        #print("")
-                        sys.stdout.write("Computing permutation p-value with GPD approximation ")
-                        nsim = args.max_sim
-                        while(list_sum[0] < 1):
-                            i = i + 1
+                    sumcount = sumcount + mpre[0]
+                    list_ss = sorted(list_ss + sum(mpre[1], []), reverse = True)[:500]
+                nsimp = totalnsim
+
+                if args.perm == "gpd" and sumcount < 100:
+
+                    if sumcount == 0:
+                        while(sumcount < 1):
+                            totalnsim = totalnsim + nsim
                             mpre = mp(args.threads, nsim, phe)
-                            #list_sum.append(sum(mpre[0]))
-                            list_sum.append(mpre[0])
-                            list_ss.extend(mpre[1])
-                            list_sum = [sum(list_sum)]
-                            sys.stdout.write('\033[33m' + str(sum(list_sum)) + '>\033[1D\033[0m')
-                        nsimp = nsimp + args.max_sim*i
-                        sys.stdout.write('\033[33m> ' + str(sum(list_sum)) + '/' + str(nsimp) + '\033[0m' + '\n')    
+                            sumcount = sumcount + mpre[0]
+                            list_ss = sorted(list_ss + sum(mpre[1], []), reverse = True)[:500]
+                        nsimp = totalnsim
                     
-                    sys.stdout = sys.__stdout__
-                    #print("")
-                    sys.stdout.write("Performing GPD goodness-of-fit test" + '\n')
-                    y = np.array(sorted([item for sublist in list_ss for item in sublist], reverse=True))
+                    y = np.array(sorted(list_ss, reverse=True))
                     mexc = 250 ## start mexc
                     a_hat = params(mexc, y)[0]
                     k_hat = params(mexc, y)[1]
@@ -335,52 +312,30 @@ if __name__ == '__main__':
                     m = len(y)
                     mexc_re = goodness(mexc, y, fname)
                     sys.stdout = log
-                    print("---")
-                    print("GPD goodness-of-fit test p-value = " + mexc_re[0])
-                    print("Nexc = " + mexc_re[1])
-                    sys.stdout.flush()
                     a_hat = params(int(mexc_re[1]), y)[0]
                     k_hat = params(int(mexc_re[1]), y)[1]
                     t = params(int(mexc_re[1]), y)[2]
                     z0 = ss[3] - t
                     p = gpd(a_hat, k_hat, z0, nsimp, int(mexc_re[1]))
-                    if(mexc_re[0] < 0.05):
-                        gpdtxt = "GPD*"
-                    else:
-                        gpdtxt = "GPD"
-                    ss = ss + [list_sum[0], str(nsimp), p, gpdtxt]
+                    ss = ss + [sumcount, str(nsimp), p, "GPD", mexc_re[0]]
                     
                 else:
-                    p = float(list_sum[0])/nsimp
-                    ss = ss + [list_sum[0], nsimp, p, "Permutation"]
-              
-                sys.stdout = log
-                print("Number of permutation values = " + str(ss[7]))
-                print("Number of permutation replicates = " + str(ss[8]))
-                print("p-value = " + str(ss[9]))
-                print("Method = " + str(ss[10]))
-                sys.stdout.flush()
-            
-                            
-            #with open(cwd + '/' + fname + '.ss.out', mode = "a") as fout:
-                #np.savetxt(fout, [ss], delimiter=" ")
-            #print("---")
-            #np.savetxt(cwd + "/tmp/" + fname + ".rare.rawG.ids", ids, delimiter=" ", fmt="%s")
+                    p = float(sumcount)/nsimp
+                    ss = ss + [sumcount, nsimp, p, "Permutation", "."]
+
             
             with open(cwd + '/' + fname + '.ss.out', mode = "a") as fout:
                 for term in ss:
                     fout.write(str(term) + ' ')
                 fout.write('\n')
-            #sys.stdout = sys.__stdout__
-            #print("")
-        
         except IOError:
-            print("# of variants within the window = 0")
-            
+            k = k + 1
+        i = i + 1
+        pb.update(i)
+        time.sleep(0.001)
+    pb.finish()
+    print(str(k) + " windows contain 0 variants")
+    print("")
+    print("End time: " + str(datetime.datetime.today().strftime("%Y/%m/%d %H:%M:%S")))
             
     log.close()            
-            
-            
-        
-
-        
