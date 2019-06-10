@@ -71,7 +71,6 @@ def MonteCarlo(i, j, l, ssl, phe):
         count += int(sim_ss[3] >= ss[3])
 
     l[j] = count
-    #ssl[j] = np.trim_zeros(sim_ss_list)
     ssl[j] = sim_ss_list
     
 ## multiple threads
@@ -205,14 +204,14 @@ if __name__ == '__main__':
     
     ## output STDOUT
     sys.stdout = sys.__stdout__
-    print("")
-    print("Welcome to   ___  ____  ____ ____  ")
-    print("            / _ \|  _ \/ ___/ ___| ")
-    print("           | | | | |_) \___ \___ \ ")
-    print("           | |_| |  __/ ___) |__) |")
-    print("            \__\_\_|   |____/____/ ")
-    print("")
-    
+    s = '''Welcome to   ___  ____  ____ ____  
+            / _ \|  _ \/ ___/ ___| 
+           | | | | |_) \___ \___ \ 
+           | |_| |  __/ ___) |__) |
+            \__\_\_|   |____/____/ 
+    '''
+   
+    print(s)
     ## output start time and arguments in the log file
     sys.stdout = log
     print("QPSS v1.0 \(@_@)/")
