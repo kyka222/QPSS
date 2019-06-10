@@ -207,9 +207,9 @@ if __name__ == '__main__':
     message = '''
     Welcome to   ___  ____  ____ ____  
                 / _ \|  _ \/ ___/ ___| 
-               | | | | |_) \___ \___ \ 
-               | |_| |  __/ ___) |__) |
-                \__\_\_|   |____/____/ 
+               | | | | |_) \___ \___ \    
+               | |_| |  __/ ___) |__) | 
+                \__\_\_|   |____/____/   
     '''
     print(message)
     
@@ -263,6 +263,8 @@ if __name__ == '__main__':
     
     i = 0 ## for progressbar
     k = 0 ## count # of windows contining no variants
+    fout = open(cwd + '/' + fname + '.ss.out', mode = "a")
+    fout.write("chr start end loglr sign meanin meanout n_variants p method p_goodness_fit\n")
     for term in ssout:
         w_start = int(term[1])
         w_end = int(term[2])
@@ -293,8 +295,8 @@ if __name__ == '__main__':
                     list_ss = sorted(list_ss + sum(mpre[1], []), reverse = True)[:500]
                 nsimp = totalnsim
 
+                ## GPD approximation
                 if args.perm == "gpd" and sumcount < 100:
-
                     if sumcount == 0:
                         while(sumcount < 1):
                             totalnsim = totalnsim + nsim
@@ -310,6 +312,7 @@ if __name__ == '__main__':
                     t = params(mexc, y)[2]
                     z0 = ss[3] - t
                     m = len(y)
+                    ## goodness-fit test
                     mexc_re = goodness(mexc, y, fname)
                     sys.stdout = log
                     a_hat = params(int(mexc_re[1]), y)[0]
@@ -317,11 +320,12 @@ if __name__ == '__main__':
                     t = params(int(mexc_re[1]), y)[2]
                     z0 = ss[3] - t
                     p = gpd(a_hat, k_hat, z0, nsimp, int(mexc_re[1]))
-                    ss = ss + [sumcount, str(nsimp), p, "GPD", mexc_re[0]]
+                    #ss = ss + [sumcount, nsimp, round(p, 3), "GPD", round(float(mexc_re[0]), 3)]
+                    ss = ss + ["{:.3g}".format(p), "GPD", "{:.3g}".format(float(mexc_re[0]))]
                     
                 else:
-                    p = round(float(sumcount)/nsimp,3)
-                    ss = ss + [sumcount, nsimp, p, "Permutation", "."]
+                    p = float(sumcount)/nsimp
+                    ss = ss + ["{:.3g}".format(p), "Permutation", "."]
 
             
             with open(cwd + '/' + fname + '.ss.out', mode = "a") as fout:
