@@ -204,14 +204,15 @@ if __name__ == '__main__':
     
     ## output STDOUT
     sys.stdout = sys.__stdout__
-    s = '''Welcome to   ___  ____  ____ ____  
-            / _ \|  _ \/ ___/ ___| 
-           | | | | |_) \___ \___ \ 
-           | |_| |  __/ ___) |__) |
-            \__\_\_|   |____/____/ 
+    message = '''
+    Welcome to   ___  ____  ____ ____  
+                / _ \|  _ \/ ___/ ___| 
+               | | | | |_) \___ \___ \ 
+               | |_| |  __/ ___) |__) |
+                \__\_\_|   |____/____/ 
     '''
-   
-    print(s)
+    print(message)
+    
     ## output start time and arguments in the log file
     sys.stdout = log
     print("QPSS v1.0 \(@_@)/")
@@ -319,7 +320,7 @@ if __name__ == '__main__':
                     ss = ss + [sumcount, str(nsimp), p, "GPD", mexc_re[0]]
                     
                 else:
-                    p = float(sumcount)/nsimp
+                    p = round(float(sumcount)/nsimp,3)
                     ss = ss + [sumcount, nsimp, p, "Permutation", "."]
 
             
