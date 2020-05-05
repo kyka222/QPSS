@@ -168,7 +168,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ##
-    plink = "plink19b67" ## <-- change to plink command on your server
+    plink = "plink" ## <-- change to plink command on your server
 
     ## output path and set the file name
     try:        
@@ -264,7 +264,10 @@ if __name__ == '__main__':
     i = 0 ## for progressbar
     k = 0 ## count # of windows contining no variants
     fout = open(cwd + '/' + fname + '.ss.out', mode = "a")
-    fout.write("chr start end loglr sign meanin meanout n_variants p method p_goodness_fit\n")
+    header = "chr start end loglr sign meanin meanout n_variants"
+    if args.perm:
+        header = header + "p method p_goodness_fit"
+    fout.write(header + "\n")
     for term in ssout:
         w_start = int(term[1])
         w_end = int(term[2])
