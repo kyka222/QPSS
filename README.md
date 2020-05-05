@@ -1,14 +1,14 @@
-#QPSS
+# QPSS
 
-##Introduction
+## Introduction
 
 Quantitative Phenotype Scan Statistic (QPSS) is a tool for scan-statistic approach handling continuous outcomes to identify genomic regions where rare quantitative-phenotype-associated variants cluster. 
 
-##Requirements
+## Requirements
 Programming language: Python2
 Others: PLINK 1.9, R 2.10 or higher, R packages goft
 
-##How to use
+## How to use
 Options:
 --bfile = input PLINK binary fileset (i.e., .bed/bim/fam) (required)
 --chr = chromosome number (required)
