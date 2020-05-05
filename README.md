@@ -7,7 +7,7 @@ Quantitative Phenotype Scan Statistic (QPSS) is a tool for scan-statistic approa
 ## Requirements
 Programming language: Python2\
 Others: PLINK 1.9, R 2.10 or higher, R packages goft\
-\
+
 
 ## How to use
 Options:\
@@ -34,16 +34,15 @@ Options:\
 
 Example 1: sliding window approach (W = 2000/S = 1000) for entire chromosome 1 for outcome in a phenotype file to output logLR only\
 \
-  python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --out output_name\
+&nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --out output_name\
 \
 \
 Example 2: Calculate logLR and p-value by permutation test for a specfic window (start is 1234 and end is 5678) on chromosome 1\
 \
-  python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678\
+&nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678\
 \
 \
 Example 3: Calculate logLR and p-value with GPD approximation for a specfic window (start is 1234 and end is 5678) within a specfic G region (start 123 to end 456789) on chromosome 1 --perm\
 \
-  python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd\
-  python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd\SSSSSS
+&nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd\
 \
