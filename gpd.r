@@ -5,7 +5,6 @@ library(goft)
 
 
 argv = commandArgs(trailingOnly = TRUE)
-#y = scan("/home/yuri/adni/scan_stat/results/lnABETA/ws2/tmp/tomm40.p.y.gpd")
 
 y = scan(argv[1])
 mexc = length(y)
