@@ -30,19 +30,19 @@ Options:\
 --perm or --p = whether p is computed. Add 'gpd' as --perm gpd for GPD approximation\
 --threads = number of threads used (default: 10)\
 --max-sim = max number of simulation for permutation test (default: 10000)\
-
+<\br>
+<\br>
 
 Example 1: sliding window approach (W = 2000/S = 1000) for entire chromosome 1 for outcome in a phenotype file to output logLR only\
 \
 &nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --out output_name\
 \
 \
-Example 2: Calculate logLR and p-value by permutation test for a specfic window (start is 1234 and end is 5678) on chromosome 1\
+Example 2: calculate logLR and p-value by permutation test for a specfic window (start = 1234 and end = 5678) on chromosome 1\
 \
 &nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678\
 \
 \
-Example 3: Calculate logLR and p-value with GPD approximation for a specfic window (start is 1234 and end is 5678) within a specfic G region (start 123 to end 456789) on chromosome 1 --perm\
+Example 3: calculate logLR and p-value with GPD approximation for a specfic window (start is 1234 and end is 5678) within a specfic G region (start 123 to end 456789) on chromosome 1 --perm\
 \
 &nbsp;&nbsp;python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd\
-\
