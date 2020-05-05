@@ -29,9 +29,8 @@ Options:\
 --out" = output file name\
 --perm or --p = whether p is computed. Add 'gpd' as --perm gpd for GPD approximation\
 --threads = number of threads used (default: 10)\
---max-sim = max number of simulation for permutation test (default: 10000)\
-<\br>
-<\br>
+--max-sim = max number of simulation for permutation test (default: 10000)\\\
+
 
 Example 1: sliding window approach (W = 2000/S = 1000) for entire chromosome 1 for outcome in a phenotype file to output logLR only\
 \
