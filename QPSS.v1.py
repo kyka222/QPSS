@@ -266,7 +266,7 @@ if __name__ == '__main__':
     fout = open(cwd + '/' + fname + '.ss.out', mode = "a")
     header = "chr start end loglr sign meanin meanout n_variants"
     if args.perm:
-        header = header + "p method p_goodness_fit"
+        header = header + " p method p_goodness_fit"
     fout.write(header + "\n")
     for term in ssout:
         w_start = int(term[1])
