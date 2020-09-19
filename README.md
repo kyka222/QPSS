@@ -34,15 +34,15 @@ Options:\
 
 Example 1: sliding window approach (W = 2000/S = 1000) for entire chromosome 1 for outcome in a phenotype file to output logLR only
 ```
-$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --out output_name
+$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --pheno-name outcome_name --chr 1 --out output_name
 ```
 
 Example 2: calculate logLR and p-value by permutation test for a specfic window (start = 1234 and end = 5678) on chromosome 1
 ```
-$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678
+$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --pheno-name outcome_name --chr 1 --W-position 1234 5678
 ```
 
 Example 3: calculate logLR and p-value with GPD approximation for a specfic window (start is 1234 and end is 5678) within a specfic G region (start 123 to end 456789) on chromosome 1 --perm
 ```
-$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --phenoname outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd
+$ python2 QPSS.v1.py --bfile plink_fileset_name --pheno phenotype_file_name --pheno-name outcome_name --chr 1 --W-position 1234 5678 --G-position 123 456789 --perm gpd
 ```
